@@ -20,8 +20,7 @@ else:
 class YoutubeAudioDownloader:
 	def __init__(self):
 		self.playlistUrl = self.getPlaylistUrlFromClipboard()
-		a = 1
-		
+
 	def getPlaylistUrlFromClipboard(self):
 		self.root = Tk()
 		
