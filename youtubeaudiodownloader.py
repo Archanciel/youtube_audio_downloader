@@ -10,17 +10,22 @@ YOUTUBE_STREAM_AUDIO = '140'
 if os.name == 'posix':
 	CONVERT = False
 	AUDIO_DIR = '/storage/emulated/0/Download/Audiobooks'
-	DIR_SEP = '/'	
+	DIR_SEP = '/'
+	WIN_WIDTH_RATIO = 1
+	WIN_HEIGHT = 800	
 else:
 	CONVERT = False # can be set to True
 	AUDIO_DIR = 'D:\\Users\\Jean-Pierre\\Downloads\\Audiobooks'
 	DIR_SEP = '\\'
+	WIN_WIDTH_RATIO = 0.8
+	WIN_HEIGHT = 500	
 
 class YoutubeAudioDownloader:
 	def __init__(self):
 		self.root = Tk()
-		self.root.geometry("1000x500") 
-		self.msg = Message(self.root, aspect=1500)
+		winWidth = int(self.root.winfo_screenwidth() * WIN_WIDTH_RATIO)
+		self.root.geometry("{}x{}".format(winWidth, WIN_HEIGHT)) 
+		self.msg = Message(self.root, aspect=winWidth - 10)
 		self.msg.grid(row=2, column=0, columnspan=2, padx=2) 
 		self.msgText = ''  
 
