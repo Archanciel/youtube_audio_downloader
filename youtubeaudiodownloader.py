@@ -1,6 +1,6 @@
 import re, os
 from pytube import YouTube, Playlist
-from tkinter import Tk
+from tkinter import Tk, TclError
 import tkinter.messagebox as msgb
 
 
@@ -8,12 +8,10 @@ YOUTUBE_STREAM_AUDIO = '140'
 
 if os.name == 'posix':
 	CONVERT = False
-	DOWNLOAD_DIR = '/storage/emulated/0/Download'
 	AUDIO_DIR = '/storage/emulated/0/Download/Audiobooks'
 	DIR_SEP = '/'	
 else:
 	CONVERT = False # can be set to True
-	DOWNLOAD_DIR = 'D:\\Users\\Jean-Pierre\\Downloads'
 	AUDIO_DIR = 'D:\\Users\\Jean-Pierre\\Downloads\\Audiobooks'
 	DIR_SEP = '\\'
 
@@ -23,8 +21,16 @@ class YoutubeAudioDownloader:
 
 	def getPlaylistUrlFromClipboard(self):
 		self.root = Tk()
-		
-		return self.root.clipboard_get()
+
+		playlistUrl = None
+
+		try:
+			playlistUrl = self.root.clipboard_get()
+		except TclError as e:
+			# playlistUrl remains None
+			pass
+
+		return playlistUrl
 		
 	def displayError(self, msg):
 		return msgb.showerror(message=msg)
@@ -33,12 +39,17 @@ class YoutubeAudioDownloader:
 		return msgb.askquestion(message=msg)
 
 	def doDownload(self):
+		if self.playlistUrl == None:
+			self.displayError('Playlist URL not in clipboard. Program closed.')
+
+			return
+
 		playlist = None
 		
 		try:
-			playlist = Playlist(str(self.playlistUrl))
+			playlist = Playlist(self.playlistUrl)
 			playlist._video_regex = re.compile(r"\"url\":\"(/watch\?v=[\w-]*)")
-		except BaseException as e:
+		except KeyError as e:
 			self.displayError('Playlist URL not in clipboard. Program closed.')
 			
 			return 
@@ -53,19 +64,19 @@ class YoutubeAudioDownloader:
 				
 		for video in playlist.videos:
 			audioStream = video.streams.get_by_itag(YOUTUBE_STREAM_AUDIO)
-			audioStream.download(output_path=DOWNLOAD_DIR)
+			audioStream.download(output_path=targetAudioDir)
 
-		for file in [n for n in os.listdir(DOWNLOAD_DIR) if re.search('mp4', n)]:
-			fullPath = os.path.join(DOWNLOAD_DIR, file)
-			outputPath = os.path.join(targetAudioDir, os.path.splitext(file)[0] + '.mp3')
+		for file in [n for n in os.listdir(targetAudioDir) if re.search('mp4', n)]:
+			mp4FilePathName = os.path.join(targetAudioDir, file)
+			mp3FilePathName = os.path.join(targetAudioDir, os.path.splitext(file)[0] + '.mp3')
 
 			if CONVERT:
 				import moviepy.editor as mp  # not working on Android
 			#	clip = mp.AudioFileClip(full_path).subclip(10, )  # disable if do not want any clipping
-				clip = mp.AudioFileClip(fullPath)
-				clip.write_audiofile(outputPath)
+				clip = mp.AudioFileClip(mp4FilePathName)
+				clip.write_audiofile(mp3FilePathName)
 			else:
-				os.rename(fullPath, outputPath)
+				os.rename(mp4FilePathName, mp3FilePathName)
 
 if __name__ == "__main__":
 	downloader = YoutubeAudioDownloader()
