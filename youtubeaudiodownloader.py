@@ -75,7 +75,10 @@ class YoutubeAudioDownloader:
 		targetAudioDir = AUDIO_DIR + DIR_SEP + playlistTitle
 		
 		if not os.path.isdir(targetAudioDir):
-			if self.getConfirmation("Directory {} will be created. Continue with download ?".format(targetAudioDir)) != 'yes':
+			targetAudioDirList = targetAudioDir.split(DIR_SEP)
+			targetAudioDirShort = DIR_SEP.join(targetAudioDirList[-2:])
+			
+			if self.getConfirmation("Directory\n{}\nwill be created.\n\nContinue with download ?".format(targetAudioDirShort)) != 'yes':
 				return
 				
 			os.makedirs(targetAudioDir)
