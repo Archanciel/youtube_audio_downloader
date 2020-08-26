@@ -81,12 +81,13 @@ class YoutubeAudioDownloader:
 			return
 		
 		playlistTitle = playlist.title()
-		
+
 		if 'Oops' in playlistTitle:
 			self.displayError('The URL obtained from clipboard is not pointing to a playlist. Program closed.')
 			return
 			
-		targetAudioDir = AUDIO_DIR + DIR_SEP + playlistTitle
+		playlistName, timeInfo = self.splitPlayListTitle(playlistTitle)
+		targetAudioDir = AUDIO_DIR + DIR_SEP + playlistName
 		
 		if not os.path.isdir(targetAudioDir):
 			targetAudioDirList = targetAudioDir.split(DIR_SEP)
@@ -109,16 +110,42 @@ class YoutubeAudioDownloader:
 			mp4FilePathName = os.path.join(targetAudioDir, file)
 			mp3FilePathName = os.path.join(targetAudioDir, os.path.splitext(file)[0] + '.mp3')
 
-			if CONVERT:
+			if timeInfo:
+				print(timeInfo)
+				timeStartSec, timeEndSec = self.splitTimeInfo(timeInfo)
 				import moviepy.editor as mp  # not working on Android
-			#	clip = mp.AudioFileClip(full_path).subclip(10, )  # disable if do not want any clipping
-				clip = mp.AudioFileClip(mp4FilePathName)
+				clip = mp.AudioFileClip(mp4FilePathName).subclip(timeStartSec, timeEndSec)  # disable if do not want any clipping
 				clip.write_audiofile(mp3FilePathName)
+				clip.close()
+				os.remove(mp4FilePathName)
 			else:
 				if os.path.isfile(mp3FilePathName):
 					os.remove(mp3FilePathName)
 
 				os.rename(mp4FilePathName, mp3FilePathName)
+				
+	def splitPlayListTitle(self, playlistTitle):
+		pattern = r"(.+) ([\d\./]+)"
+		playlistName = None
+		timeInfo = None
+
+		match = re.match(pattern, playlistTitle)
+		
+		if match:
+			playlistName = match.group(1)
+			timeInfo = match.group(2)		
+
+		return playlistName, timeInfo
+
+	def splitTimeInfo(self, timeInfo):
+		timeLst = timeInfo.split('/')
+		timeStartHHMMSS = timeLst[0].split('.')
+		timeEndHHMMSS = timeLst[1].split('.')
+
+		timeStartSec = int(timeStartHHMMSS[0]) * 3600 + int(timeStartHHMMSS[1]) * 60 + int(timeStartHHMMSS[2])
+		timeEndSec = int(timeEndHHMMSS[0]) * 3600 + int(timeEndHHMMSS[1]) * 60 + int(timeEndHHMMSS[2])
+
+		return timeStartSec, timeEndSec
 
 if __name__ == "__main__":
 	downloader = YoutubeAudioDownloader()

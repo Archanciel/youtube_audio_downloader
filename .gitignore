@@ -5,3 +5,4 @@
 .idea/modules.xml
 .idea/youtube_audio_download.iml
 .idea/vcs.xml
+*.pyc
