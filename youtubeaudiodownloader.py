@@ -3,7 +3,9 @@ from pytube import YouTube, Playlist
 import http.client
 from tkinter import Tk, TclError, Message
 import tkinter.messagebox as msgb
+import logging
 
+from configmanager import ConfigManager
 
 YOUTUBE_STREAM_AUDIO = '140'
 
@@ -29,7 +31,17 @@ class YoutubeAudioDownloader:
 		self.msg.grid(row=2, column=0, columnspan=2, padx=2) 
 		self.msgText = ''  
 
-		self.playlistUrl = self.getPlaylistUrlFromClipboard()
+		if os.name == 'posix':
+			configFilePathName = '/storage/emulated/0/Android/data/ru.iiec.pydroid3/files/youtube_audio_download/audiodownload.ini'
+		else:
+			configFilePathName = 'D:\\Development\\Python\\youtube_audio_download\\audiodownload.ini'
+
+		self.configMgr = ConfigManager(configFilePathName)
+		self.emailLst = self.configMgr.getEmailLst()
+#		format = "%(asctime)s: %(message)s"
+#		logging.basicConfig(format=format, level=logging.INFO,datefmt="%H:%M:%S")
+
+#		logging.info(self.emailLst)
 
 	def getPlaylistUrlFromClipboard(self):
 		playlistUrl = None
@@ -49,7 +61,9 @@ class YoutubeAudioDownloader:
 		return msgb.askquestion(message=msg)
 
 	def doDownload(self):
-		if self.playlistUrl == None:
+		playlistUrl = self.getPlaylistUrlFromClipboard()
+		
+		if playlistUrl == None:
 			self.displayError('Playlist URL not in clipboard. Program closed.')
 
 			return
@@ -57,7 +71,7 @@ class YoutubeAudioDownloader:
 		playlist = None
 		
 		try:
-			playlist = Playlist(self.playlistUrl)
+			playlist = Playlist(playlistUrl)
 			playlist._video_regex = re.compile(r"\"url\":\"(/watch\?v=[\w-]*)")
 		except KeyError as e:
 			self.displayError('Playlist URL not in clipboard. Program closed.')			
