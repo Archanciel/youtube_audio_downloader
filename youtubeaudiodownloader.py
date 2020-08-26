@@ -132,7 +132,10 @@ class YoutubeAudioDownloader:
 		
 		if match:
 			playlistName = match.group(1)
-			timeInfo = match.group(2)		
+			timeInfo = match.group(2)
+		else:
+			# no time info provided in the play list title
+			playlistName = playlistTitle
 
 		return playlistName, timeInfo
 
