@@ -111,7 +111,6 @@ class YoutubeAudioDownloader:
 			mp3FilePathName = os.path.join(targetAudioDir, os.path.splitext(file)[0] + '.mp3')
 
 			if timeInfo:
-				print(timeInfo)
 				timeStartSec, timeEndSec = self.splitTimeInfo(timeInfo)
 				import moviepy.editor as mp  # not working on Android
 				clip = mp.AudioFileClip(mp4FilePathName).subclip(timeStartSec, timeEndSec)  # disable if do not want any clipping
